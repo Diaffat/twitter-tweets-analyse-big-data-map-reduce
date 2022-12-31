@@ -4,3 +4,6 @@
 
 # le fichier topic.csv est pareil(considerer le comme le fichier df.csv )
 # donc il ne faut pas les supprimer
+
+
+# lien streamlit : https://lifsadev-analyzetweets-main-pqjiv8.streamlit.app/
