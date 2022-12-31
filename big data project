@@ -1,0 +1,526 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "id": "c5446f31",
+   "metadata": {},
+   "source": [
+    "<h1 class=\"list-group-item list-group-item-action active\" data-toggle=\"list\" style='background:darkslategray; border-radius:20px;font-size:30px' role=\"tab\" aria-controls=\"home\"><center>Section des Librairies</center></h1>"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "id": "a7e70656",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from pyspark import (SparkContext,\n",
+    "                     SparkConf)\n",
+    "from pyspark.sql.types import (StructType,\n",
+    "                               StructField,\n",
+    "                               StringType,\n",
+    "                               IntegerType,\n",
+    "                               FloatType)\n",
+    "from pyspark.sql import SparkSession\n",
+    "import findspark\n",
+    "from textblob import TextBlob "
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "37a4ad08",
+   "metadata": {},
+   "source": [
+    "<h1 class=\"list-group-item list-group-item-action active\" data-toggle=\"list\" style='background:darkslategray; border-radius:20px;font-size:30px' role=\"tab\" aria-controls=\"home\"><center>Find Spark</center></h1>"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "id": "96e7c118",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "'/home/boss/spark'"
+      ]
+     },
+     "execution_count": 2,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "findspark.init()\n",
+    "findspark.find()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "9dcb92a1",
+   "metadata": {},
+   "source": [
+    "<h1 class=\"list-group-item list-group-item-action active\" data-toggle=\"list\" style='background:darkslategray; border-radius:20px;font-size:30px' role=\"tab\" aria-controls=\"home\"><center>Create Spark Session</center></h1>"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "id": "f697a91c",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "sc = SparkContext.getOrCreate(conf=SparkConf().setAppName(\"Projet_BigData\"))\n",
+    "spark = SparkSession(sc) "
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "e57ec609",
+   "metadata": {},
+   "source": [
+    "<h1 class=\"list-group-item list-group-item-action active\" data-toggle=\"list\" style='background:darkslategray; border-radius:20px;font-size:30px' role=\"tab\" aria-controls=\"home\"><center>Read Data From HDFS</center></h1>"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "id": "cf1b9419",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "                                                                                \r"
+     ]
+    }
+   ],
+   "source": [
+    "schema = StructType([\n",
+    "                    StructField(\"Date\", StringType(), True),\n",
+    "                    StructField(\"User\", StringType(), True),\n",
+    "                    StructField(\"IsVerified\", StringType(), True),\n",
+    "                    StructField(\"Tweet\", StringType(), True),\n",
+    "                    StructField(\"Likes\", IntegerType(), True),\n",
+    "                    StructField(\"RT\", IntegerType(), True),\n",
+    "                    StructField(\"User_location\", StringType(), True),\n",
+    "                    StructField(\"clean_tweet\", StringType(), True),\n",
+    "                    StructField(\"Subjectivity\", FloatType(), True),\n",
+    "                    StructField(\"Polarity\", FloatType(), True),\n",
+    "                    StructField(\"Sentiment\", StringType(), True)\n",
+    "                    ])\n",
+    " \n",
+    "df = spark.read.option(\"header\", \"true\").option(\"inferSchema\", \"true\").csv(\"hdfs:/tweets.csv\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "id": "5bc6a524",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "+--------------------+--------------------+\n",
+      "|                User|         clean_tweet|\n",
+      "+--------------------+--------------------+\n",
+      "|      happy0shopping|car truck voltage...|\n",
+      "|           reddog_ca|the current elect...|\n",
+      "|James 🏴󠁧󠁢󠁳󠁣?...|do1an i have one ...|\n",
+      "|       TRUTH SEEKERS|rt this is just t...|\n",
+      "|♋🦀❤💙Resilient t...|works yes i actua...|\n",
+      "|         Pat Johnson|wrong again i wor...|\n",
+      "|              Unicun|                null|\n",
+      "|                   0|                null|\n",
+      "|             alphalo|rutt postmodern i...|\n",
+      "|      Filomena7eJWVl|goupchn back prob...|\n",
+      "|       Khalid 🇲🇦🍀|geelen i worked i...|\n",
+      "|     Mike Burkholder|                null|\n",
+      "|                null|                null|\n",
+      "|                   1|                null|\n",
+      "|       Verdie57mpskJ|db electrical 231...|\n",
+      "|Samharden@mastodo...|me in highschool ...|\n",
+      "|Giovani.Abernathy...|jabtraxx 240pcs c...|\n",
+      "|        Todd Collins|does you co2 outp...|\n",
+      "|   Blackbird Writes!|i d love your adv...|\n",
+      "| Rogelio_Borer45wLgi|kweiny auto termi...|\n",
+      "+--------------------+--------------------+\n",
+      "only showing top 20 rows\n",
+      "\n"
+     ]
+    }
+   ],
+   "source": [
+    "df.select(\"User\",\"clean_tweet\").show(n=20)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "a335da50",
+   "metadata": {},
+   "source": [
+    "<h1 class=\"list-group-item list-group-item-action active\" data-toggle=\"list\" style='background:darkslategray; border-radius:20px;font-size:30px' role=\"tab\" aria-controls=\"home\"><p>MapReduce:</p><center>Count tweets by sentiment</center></h1>"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "id": "576d3788",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def classify_tweet(row):\n",
+    "    tweet = row.clean_tweet\n",
+    "    if tweet is None:\n",
+    "        return ()\n",
+    "    sentiment = TextBlob(tweet).sentiment.polarity\n",
+    "    if sentiment > 0:\n",
+    "        return (\"positive\", 1)\n",
+    "    elif sentiment < 0:\n",
+    "        return (\"negative\", 1)\n",
+    "    else:\n",
+    "        return (\"neutral\", 1) "
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "f3c4c070",
+   "metadata": {},
+   "source": [
+    "## 1. Map"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 8,
+   "id": "0ba5bb29",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "                                                                                \r"
+     ]
+    },
+    {
+     "data": {
+      "text/plain": [
+       "[('positive', 1),\n",
+       " ('neutral', 1),\n",
+       " ('neutral', 1),\n",
+       " ('positive', 1),\n",
+       " ('negative', 1),\n",
+       " ('negative', 1),\n",
+       " (),\n",
+       " (),\n",
+       " ('positive', 1),\n",
+       " ('neutral', 1),\n",
+       " ('negative', 1),\n",
+       " (),\n",
+       " (),\n",
+       " (),\n",
+       " ('neutral', 1),\n",
+       " ('neutral', 1),\n",
+       " ('neutral', 1),\n",
+       " ('neutral', 1),\n",
+       " ('positive', 1),\n",
+       " ('neutral', 1),\n",
+       " ('neutral', 1),\n",
+       " ('neutral', 1),\n",
+       " ('neutral', 1),\n",
+       " ('neutral', 1),\n",
+       " ('neutral', 1),\n",
+       " ('negative', 1),\n",
+       " ('negative', 1),\n",
+       " ('negative', 1),\n",
+       " ('negative', 1),\n",
+       " ('neutral', 1),\n",
+       " ('neutral', 1),\n",
+       " (),\n",
+       " (),\n",
+       " ('neutral', 1),\n",
+       " ('positive', 1),\n",
+       " ('neutral', 1),\n",
+       " (),\n",
+       " (),\n",
+       " (),\n",
+       " ('neutral', 1),\n",
+       " ('neutral', 1),\n",
+       " ('neutral', 1),\n",
+       " ('positive', 1),\n",
+       " ('positive', 1),\n",
+       " ('positive', 1),\n",
+       " (),\n",
+       " (),\n",
+       " ('neutral', 1),\n",
+       " ('neutral', 1),\n",
+       " (),\n",
+       " (),\n",
+       " ('negative', 1),\n",
+       " (),\n",
+       " (),\n",
+       " ('neutral', 1),\n",
+       " ('positive', 1),\n",
+       " ('positive', 1),\n",
+       " ('positive', 1),\n",
+       " ('positive', 1),\n",
+       " ('negative', 1),\n",
+       " ('neutral', 1),\n",
+       " ('positive', 1),\n",
+       " ('neutral', 1),\n",
+       " ('positive', 1),\n",
+       " ('positive', 1),\n",
+       " ('negative', 1),\n",
+       " ('negative', 1),\n",
+       " ('neutral', 1),\n",
+       " ('negative', 1),\n",
+       " ('negative', 1),\n",
+       " ('positive', 1),\n",
+       " ('neutral', 1),\n",
+       " ('neutral', 1),\n",
+       " ('neutral', 1),\n",
+       " ('positive', 1),\n",
+       " (),\n",
+       " (),\n",
+       " (),\n",
+       " (),\n",
+       " ('neutral', 1),\n",
+       " ('neutral', 1),\n",
+       " ('neutral', 1),\n",
+       " ('neutral', 1),\n",
+       " ('neutral', 1),\n",
+       " (),\n",
+       " (),\n",
+       " (),\n",
+       " (),\n",
+       " (),\n",
+       " (),\n",
+       " (),\n",
+       " ('negative', 1),\n",
+       " ('neutral', 1),\n",
+       " ('neutral', 1),\n",
+       " ('negative', 1),\n",
+       " ('positive', 1),\n",
+       " (),\n",
+       " (),\n",
+       " ('neutral', 1),\n",
+       " ('neutral', 1),\n",
+       " ('neutral', 1),\n",
+       " ('neutral', 1),\n",
+       " ('neutral', 1),\n",
+       " ('neutral', 1),\n",
+       " (),\n",
+       " (),\n",
+       " (),\n",
+       " ('neutral', 1),\n",
+       " (),\n",
+       " (),\n",
+       " ('neutral', 1),\n",
+       " ('neutral', 1),\n",
+       " ('neutral', 1),\n",
+       " ('positive', 1),\n",
+       " ('neutral', 1),\n",
+       " ('negative', 1),\n",
+       " ('negative', 1),\n",
+       " ('positive', 1),\n",
+       " ('neutral', 1),\n",
+       " ('neutral', 1)]"
+      ]
+     },
+     "execution_count": 8,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "tweets_map = df.select(\"clean_tweet\").rdd.map(classify_tweet)\n",
+    "tweets_map.collect()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "d8ad25cf",
+   "metadata": {},
+   "source": [
+    "## 2.Reduce"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 11,
+   "id": "0a0cd4cc",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "                                                                                \r"
+     ]
+    },
+    {
+     "data": {
+      "text/plain": [
+       "[('positive', 20), ('neutral', 49), ('negative', 17)]"
+      ]
+     },
+     "execution_count": 11,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "filtered_tweets_map= tweets_map.filter(lambda x: len(x) > 0)\n",
+    "counts_tweets = filtered_tweets_map.reduceByKey(lambda x, y: x + y)\n",
+    "counts_tweets.collect()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "c2a97fb0",
+   "metadata": {},
+   "source": [
+    "<h1 class=\"list-group-item list-group-item-action active\" data-toggle=\"list\" style='background:darkslategray; border-radius:20px;font-size:30px' role=\"tab\" aria-controls=\"home\"><p>STORE:</p><center>Store Into HDFS</center></h1>"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 13,
+   "id": "c0d9f439",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "df_count = counts_tweets.toDF()\n",
+    "df_count.write.mode(\"overwrite\").format(\"csv\").save(\"hdfs:///test\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "76da6b29",
+   "metadata": {},
+   "source": [
+    "<h1 class=\"list-group-item list-group-item-action active\" data-toggle=\"list\" style='background:darkslategray; border-radius:20px;font-size:30px' role=\"tab\" aria-controls=\"home\"><p>MapReduce:</p><center>Select Positive User</center></h1> "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 14,
+   "id": "f0125a8c",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def get_user_tweet(row):\n",
+    "    user=row.User \n",
+    "    sentiment=row.Sentiment \n",
+    "    #tweets=row.clean_tweet\n",
+    "    if sentiment==\"Positive\":\n",
+    "        return 'User: '+user+' Sentiment: '+sentiment   "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 15,
+   "id": "84b86e6a",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "['User: happy0shopping Sentiment: Positive',\n",
+       " None,\n",
+       " 'User: TRUTH SEEKERS Sentiment: Positive',\n",
+       " 'User: alphalo Sentiment: Positive',\n",
+       " 'User: Blackbird Writes! Sentiment: Positive',\n",
+       " 'User: nedra Sentiment: Positive',\n",
+       " 'User: Tim Aka Sentiment: Positive',\n",
+       " 'User: nabi_brt Sentiment: Positive',\n",
+       " 'User: Kade.Stehr12YWygx Sentiment: Positive',\n",
+       " 'User: Roy.Morar14AwIL Sentiment: Positive',\n",
+       " 'User: Matt McDonald Sentiment: Positive',\n",
+       " 'User: OLI C 🇪🇺 🇺🇦 Sentiment: Positive',\n",
+       " 'User: Umar Farouk Sentiment: Positive',\n",
+       " 'User: Vero_Nika 🇷🇺🇧🇾🇷🇸 Sentiment: Positive',\n",
+       " 'User: Mohammad Kianmehr Sentiment: Positive',\n",
+       " 'User: FilterKaapiLover Sentiment: Positive',\n",
+       " 'User: Keyshawn.BoscoSevK Sentiment: Positive',\n",
+       " 'User: Michael Tsai Sentiment: Positive',\n",
+       " 'User: Caro_Car Sentiment: Positive',\n",
+       " 'User: Germaine8ubhAJ Sentiment: Positive']"
+      ]
+     },
+     "execution_count": 15,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "user_map = df.select(\"User\",\"clean_tweet\",\"Sentiment\").rdd.map(get_user_tweet)\n",
+    "user_map.distinct().collect() "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "7cd98f58",
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3 (ipykernel)",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.10.6"
+  },
+  "varInspector": {
+   "cols": {
+    "lenName": 16,
+    "lenType": 16,
+    "lenVar": 40
+   },
+   "kernels_config": {
+    "python": {
+     "delete_cmd_postfix": "",
+     "delete_cmd_prefix": "del ",
+     "library": "var_list.py",
+     "varRefreshCmd": "print(var_dic_list())"
+    },
+    "r": {
+     "delete_cmd_postfix": ") ",
+     "delete_cmd_prefix": "rm(",
+     "library": "var_list.r",
+     "varRefreshCmd": "cat(var_dic_list()) "
+    }
+   },
+   "types_to_exclude": [
+    "module",
+    "function",
+    "builtin_function_or_method",
+    "instance",
+    "_Feature"
+   ],
+   "window_display": false
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}
